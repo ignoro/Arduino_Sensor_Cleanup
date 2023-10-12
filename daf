@@ -1,0 +1,73 @@
+#include <LiquidCrystal_I2C.h>
+#include <dht.h>
+#include <SoftwareSerial.h>
+
+#define DCmoterA 9 // DC모터 +
+#define DCmoterB 10 // DC모터 -
+
+// HC-06
+
+#define BT_RXD 6 // 블루투스 RX
+#define BT_TXD 7 // 블루투스 TX
+
+SoftwareSerial bluetooth(BT_RXD, BT_TXD); // SoftwareSerial name(RX, TX);
+
+// DHT11
+
+dht DHT;
+
+#define DHT11_PIN 8
+
+float temp;
+
+// LCD
+LiquidCrystal_I2C lcd(0x3F,16,2);
+
+void setup() {
+  // put your setup code here, to run once:
+  pinMode(DHT11_PIN, INPUT); // 없어도 되는지는 확인 바람.
+  lcd.init();
+  lcd.backlight();
+}
+
+void loop() {
+  // put your main code here, to run repeatedly:
+  char val = bluetooth.read();
+
+  if(val == 'A'){
+    lcd.setCursor(0,0);
+    lcd.print("mode:AUTO");
+    lcd.setCursor(1,0);
+    while(val != 'U' or val != 'S'){
+      char val = bluetooth.read();
+      DHT.read11(DHT11_PIN);
+      temp = DHT.temperature;
+      lcd.setCursor(1,0);
+      lcd.print(temp);
+      
+      if (temp >= 32.0 && temp < 35)
+        lcd.print("h");
+
+      delay(100);
+    }
+  }
+  else if(val == 'U') {
+    lcd.setCursor(0,0);
+    lcd.print("mode:USER");
+    lcd.setCursor(1,0);
+    while(val != 'A' or val != 'S'){
+      char val = bluetooth.read();
+      DHT.read11(DHT11_PIN);
+      temp = DHT.temperature;
+      lcd.print(temp);
+      
+      if (val == '1')
+        lcd.print("d");
+
+      delay(100);
+    }
+  }
+  else if(val == 'S') {
+    
+  }
+}
